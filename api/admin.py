@@ -1,11 +1,81 @@
+import time
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import text
 from core.database import get_db
+from core.config import settings
 from models import models as db_models
 from schemas import schemas as api_schemas
 from typing import List
 
 router = APIRouter()
+
+
+@router.get("/health")
+def get_infrastructure_health(db: Session = Depends(get_db)):
+    """
+    Real-time health check for all infrastructure services.
+    Returns status of Redis, Celery Workers, and Database.
+    """
+    health = {}
+
+    # 1. Redis Check
+    try:
+        import redis as redis_lib
+        r = redis_lib.from_url(settings.REDIS_URL, socket_connect_timeout=3)
+        start = time.time()
+        r.ping()
+        latency = round((time.time() - start) * 1000, 1)
+        health["redis"] = {"status": "connected", "latency_ms": latency}
+    except Exception as e:
+        health["redis"] = {"status": "disconnected", "error": str(e)}
+
+    # 2. Celery Worker Check
+    try:
+        from worker.tasks import celery_app
+        inspector = celery_app.control.inspect(timeout=3)
+        ping_result = inspector.ping()
+        if ping_result:
+            worker_names = list(ping_result.keys())
+            health["celery_worker"] = {
+                "status": "connected",
+                "active_workers": len(worker_names),
+                "workers": worker_names,
+            }
+        else:
+            health["celery_worker"] = {
+                "status": "disconnected",
+                "error": "No workers responded to ping",
+                "active_workers": 0,
+            }
+    except Exception as e:
+        health["celery_worker"] = {
+            "status": "disconnected",
+            "error": str(e),
+            "active_workers": 0,
+        }
+
+    # 3. Database Check
+    try:
+        start = time.time()
+        db.execute(text("SELECT 1"))
+        latency = round((time.time() - start) * 1000, 1)
+        health["database"] = {"status": "connected", "latency_ms": latency}
+    except Exception as e:
+        health["database"] = {"status": "disconnected", "error": str(e)}
+
+    # 4. Overall Summary
+    services_down = sum(1 for s in health.values() if s["status"] == "disconnected")
+    if services_down == 0:
+        health["overall"] = "All Systems Operational"
+    elif services_down == len(health):
+        health["overall"] = "Critical: All Services Down"
+    else:
+        health["overall"] = f"{services_down} Service{'s' if services_down > 1 else ''} Down"
+
+    return health
+
 
 @router.post("/companies", response_model=api_schemas.Company)
 def create_company(company_in: api_schemas.CompanyCreate, db: Session = Depends(get_db)):

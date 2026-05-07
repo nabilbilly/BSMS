@@ -61,7 +61,7 @@ def send_sms_task(self, phone_number: str, message: str, log_id: int):
             message, 
             client_id=company.hubtel_client_id, 
             secret=company.hubtel_client_secret,
-            sender_id=company.name # Or another field if you prefer
+            sender_id=company.hubtel_sender_id
         )
 
         # If technical error, trigger a retry with exponential backoff

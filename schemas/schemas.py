@@ -32,6 +32,7 @@ class CompanyBase(BaseModel):
 class CompanyCreate(CompanyBase):
     hubtel_client_id: Optional[str] = None
     hubtel_client_secret: Optional[str] = None
+    hubtel_sender_id: Optional[str] = None
     brevo_api_key: Optional[str] = None
     brevo_sender_email: Optional[EmailStr] = None
     brevo_sender_name: Optional[str] = None
@@ -42,6 +43,7 @@ class CompanyUpdate(BaseModel):
     is_active: Optional[bool] = None
     hubtel_client_id: Optional[str] = None
     hubtel_client_secret: Optional[str] = None
+    hubtel_sender_id: Optional[str] = None
     brevo_api_key: Optional[str] = None
     brevo_sender_email: Optional[EmailStr] = None
     brevo_sender_name: Optional[str] = None
@@ -51,6 +53,7 @@ class Company(CompanyBase):
     created_at: datetime
     hubtel_client_id: Optional[str] = None
     hubtel_client_secret: Optional[str] = None
+    hubtel_sender_id: Optional[str] = None
     brevo_api_key: Optional[str] = None
     brevo_sender_email: Optional[EmailStr] = None
     brevo_sender_name: Optional[str] = None

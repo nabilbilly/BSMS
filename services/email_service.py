@@ -7,9 +7,6 @@ logger = get_logger(__name__)
 
 class BrevoEmail:
     def __init__(self):
-        self.api_key = settings.BREVO_API_KEY
-        self.sender_email = settings.BREVO_SENDER_EMAIL
-        self.sender_name = settings.BREVO_SENDER_NAME
         self.base_url = "https://api.brevo.com/v3"
 
     def send_transactional_email(
@@ -19,9 +16,9 @@ class BrevoEmail:
         Sends a single transactional email via Brevo API v3.
         Detects if content is already HTML; if not, converts newlines to <br/>.
         """
-        final_api_key = api_key or self.api_key
-        final_sender_email = sender_email or self.sender_email
-        final_sender_name = sender_name or self.sender_name
+        final_api_key = api_key
+        final_sender_email = sender_email
+        final_sender_name = sender_name
 
         if not final_api_key:
             logger.warning("Brevo API Key missing. Mocking email success.")

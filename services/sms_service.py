@@ -7,11 +7,6 @@ logger = get_logger(__name__)
 
 class HubtelSMS:
     def __init__(self):
-        self.api_key = settings.SMS_API_KEY
-        self.sender_id = settings.SMS_SENDER_ID
-        self.client_id = settings.HUBTEL_CLIENT_ID
-        self.secret = settings.HUBTEL_CLIENT_SECRET
-
         # Hubtel Base URL (v1)
         self.base_url = "https://api.hubtel.com/v1/messages"
 
@@ -19,9 +14,10 @@ class HubtelSMS:
         """
         Sends an SMS using Hubtel's HTTP API.
         """
-        final_client_id = client_id or self.client_id
-        final_secret = secret or self.secret
-        final_sender_id = sender_id or self.sender_id
+        final_client_id = client_id
+        final_secret = secret
+        final_sender_id = sender_id
+
 
         if not final_client_id or not final_secret:
             logger.warning("Hubtel credentials missing. Mocking success.")

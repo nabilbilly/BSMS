@@ -14,6 +14,7 @@ class Company(Base):
     # SMS Gateway (Hubtel)
     hubtel_client_id = Column(String, nullable=True)
     hubtel_client_secret = Column(String, nullable=True)
+    hubtel_sender_id = Column(String, nullable=True)
     
     # Email Gateway (Brevo)
     brevo_api_key = Column(String, nullable=True)

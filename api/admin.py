@@ -90,6 +90,7 @@ def create_company(company_in: api_schemas.CompanyCreate, db: Session = Depends(
         is_active=company_in.is_active,
         hubtel_client_id=company_in.hubtel_client_id,
         hubtel_client_secret=company_in.hubtel_client_secret,
+        hubtel_sender_id=company_in.hubtel_sender_id,
         brevo_api_key=company_in.brevo_api_key,
         brevo_sender_email=company_in.brevo_sender_email,
         brevo_sender_name=company_in.brevo_sender_name

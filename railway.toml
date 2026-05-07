@@ -2,6 +2,6 @@
 builder = "nixpacks"
 
 [deploy]
-startCommand = "celery -A worker.tasks worker --beat --loglevel=info & uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'"
+startCommand = "alembic upgrade head && celery -A worker.tasks worker --beat --loglevel=info & uvicorn main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips='*'"
 healthCheckPath = "/"
 healthCheckTimeout = 100

@@ -17,51 +17,25 @@ db_models.Base.metadata.create_all(bind=engine)
 app = FastAPI(title=settings.PROJECT_NAME)
 
 
-# @app.exception_handler(Exception)
-# async def global_exception_handler(request: Request, exc: Exception):
-#     """
-#     Catch-all for any unhandled exceptions.
-#     Logs the full traceback and returns a clean 500 response.
-#     """
-#     error_details = traceback.format_exc()
-#     logger.error(
-#         f"Global Exception caught at {request.url.path}: {str(exc)}\n{error_details}"
-#     )
-
-#     return JSONResponse(
-#         status_code=500,
-#         content={
-#             "detail": "An unexpected internal server error occurred. Please contact support.",
-#             "error_type": exc.__class__.__name__,
-#         },
-#     )
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Catch-all for any unhandled exceptions.
+    Logs the full traceback and returns a clean 500 response.
+    """
     error_details = traceback.format_exc()
-
     logger.error(
-        f"Global Exception at {request.url.path}: {repr(exc)}\n{error_details}"
+        f"Global Exception caught at {request.url.path}: {str(exc)}\n{error_details}"
     )
 
-    # 👉 DEV MODE: show real error
-    if settings.DEBUG:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "detail": str(exc),
-                "error_type": exc.__class__.__name__,
-                "traceback": error_details,
-            },
-        )
-
-    # 👉 PROD MODE: safe message only
     return JSONResponse(
         status_code=500,
         content={
-            "detail": "Internal server error",
+            "detail": "An unexpected internal server error occurred. Please contact support.",
             "error_type": exc.__class__.__name__,
         },
     )
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):

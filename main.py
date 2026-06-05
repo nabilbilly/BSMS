@@ -16,6 +16,22 @@ db_models.Base.metadata.create_all(bind=engine)
 
 app = FastAPI(title=settings.PROJECT_NAME)
 
+# CORS Configuration
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "https://react-frontend-production-fa2a.up.railway.app",
+        settings.FRONTEND_URL,
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -36,19 +52,20 @@ async def global_exception_handler(request: Request, exc: Exception):
         },
     )
 
-from fastapi import Request
-from fastapi.responses import JSONResponse
+
 from sqlalchemy.exc import ProgrammingError
+
 
 @app.exception_handler(ProgrammingError)
 async def programming_error_handler(request: Request, exc: ProgrammingError):
     return JSONResponse(
         status_code=500,
         content={
-            "detail": str(exc.orig),   # real DB error
-            "statement": exc.statement # offending SQL
-        }
+            "detail": str(exc.orig),  # real DB error
+            "statement": exc.statement,  # offending SQL
+        },
     )
+
 
 @app.exception_handler(HTTPException)
 async def http_exception_handler(request: Request, exc: HTTPException):
@@ -57,23 +74,6 @@ async def http_exception_handler(request: Request, exc: HTTPException):
     """
     logger.warning(f"HTTP {exc.status_code} at {request.url.path}: {exc.detail}")
     return JSONResponse(status_code=exc.status_code, content={"detail": exc.detail})
-
-
-# CORS Configuration
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:5173",
-        "http://127.0.0.1:3000",
-        "https://react-frontend-production-fa2a.up.railway.app",
-        settings.FRONTEND_URL,
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 
 @app.get("/")

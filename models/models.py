@@ -70,6 +70,7 @@ class SMSLog(Base):
     message_type = Column(String)  # e.g., "confirmation", "followup"
     message_content = Column(Text)
     status = Column(String)  # "queued", "sent", "failed"
+    is_bulk = Column(Boolean, default=False)
     delivery_report = Column(Text, nullable=True)
     scheduled_for = Column(DateTime(timezone=True))
     sent_at = Column(DateTime(timezone=True), nullable=True)

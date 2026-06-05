@@ -28,14 +28,18 @@ def send_email(
         name_to_use = customer.full_name if customer else "Valued Customer"
         branch_name = current_branch.name or "Class House"
         
-        personalized_content = email_in.message_content.replace("{name}", name_to_use)
-        personalized_content = personalized_content.replace("{branch}", branch_name)
+        import re
+        personalized_content = re.sub(r'\{\s*name\s*\}', name_to_use, email_in.message_content, flags=re.IGNORECASE)
+        personalized_content = re.sub(r'\{\s*branch\s*\}', branch_name, personalized_content, flags=re.IGNORECASE)
+        
+        personalized_subject = re.sub(r'\{\s*name\s*\}', name_to_use, email_in.subject, flags=re.IGNORECASE)
+        personalized_subject = re.sub(r'\{\s*branch\s*\}', branch_name, personalized_subject, flags=re.IGNORECASE)
 
         # 2. Create Email Log
         new_log = db_models.EmailLog(
             branch_id=current_branch.id,
             recipient_email=email_in.recipient_email,
-            subject=email_in.subject,
+            subject=personalized_subject,
             message_content=personalized_content,
             status="queued",
             scheduled_for=email_in.scheduled_for
@@ -60,12 +64,12 @@ def send_email(
         
         if scheduled_at and scheduled_at > now_naive + timedelta(seconds=30):
             send_email_task.apply_async(
-                args=[email_in.recipient_email, email_in.subject, personalized_content, new_log.id],
+                args=[email_in.recipient_email, personalized_subject, personalized_content, new_log.id],
                 eta=scheduled_at
             )
         else:
             send_email_task.delay(
-                email_in.recipient_email, email_in.subject, personalized_content, new_log.id
+                email_in.recipient_email, personalized_subject, personalized_content, new_log.id
             )
 
         return new_log
@@ -105,10 +109,14 @@ def send_bulk_email(
         queued_count = 0
         branch_name = current_branch.name or "Class House"
         
+        import re
         for customer in customers:
             # Personalization
-            personalized_content = bulk_in.message_content.replace("{name}", customer.full_name)
-            personalized_content = personalized_content.replace("{branch}", branch_name)
+            personalized_content = re.sub(r'\{\s*name\s*\}', customer.full_name, bulk_in.message_content, flags=re.IGNORECASE)
+            personalized_content = re.sub(r'\{\s*branch\s*\}', branch_name, personalized_content, flags=re.IGNORECASE)
+            
+            personalized_subject = re.sub(r'\{\s*name\s*\}', customer.full_name, bulk_in.subject, flags=re.IGNORECASE)
+            personalized_subject = re.sub(r'\{\s*branch\s*\}', branch_name, personalized_subject, flags=re.IGNORECASE)
 
             # Normalize scheduled_for to naive UTC immediately
             scheduled_at = bulk_in.scheduled_for or now
@@ -126,7 +134,7 @@ def send_bulk_email(
             new_log = db_models.EmailLog(
                 branch_id=current_branch.id,
                 recipient_email=customer.email,
-                subject=bulk_in.subject,
+                subject=personalized_subject,
                 message_content=personalized_content,
                 status="queued",
                 scheduled_for=scheduled_at
@@ -139,12 +147,12 @@ def send_bulk_email(
 
             if scheduled_at and scheduled_at > now_naive + timedelta(seconds=30):
                 send_email_task.apply_async(
-                    args=[customer.email, bulk_in.subject, personalized_content, new_log.id],
+                    args=[customer.email, personalized_subject, personalized_content, new_log.id],
                     eta=scheduled_at
                 )
             else:
                 send_email_task.delay(
-                    customer.email, bulk_in.subject, personalized_content, new_log.id
+                    customer.email, personalized_subject, personalized_content, new_log.id
                 )
             queued_count += 1
         

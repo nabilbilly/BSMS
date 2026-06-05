@@ -133,6 +133,7 @@ class SMSLog(BaseModel):
     message_type: str
     message_content: str
     status: str
+    is_bulk: bool = False
     delivery_report: Optional[str] = None
     scheduled_for: datetime
     sent_at: Optional[datetime] = None
@@ -199,6 +200,7 @@ class BulkReschedule(BaseModel):
 class AdminSMSLog(SMSLog):
     company_name: str
     branch_name: str
+    is_bulk: bool = False
 
 class AdminEmailLog(EmailLog):
     company_name: str
@@ -212,9 +214,26 @@ class PaginatedAdminEmailLog(BaseModel):
     items: List[AdminEmailLog]
     total: int
 
+class AdminCustomer(BaseModel):
+    id: int
+    full_name: str
+    phone_number: str
+    email: Optional[str] = None
+    branch_name: str
+    company_name: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+class PaginatedAdminCustomer(BaseModel):
+    items: List[AdminCustomer]
+    total: int
+
 class GlobalStats(BaseModel):
     total_companies: int
     total_branches: int
     total_sms: int
     total_emails: int
     total_customers: int
+

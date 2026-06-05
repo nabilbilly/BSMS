@@ -13,4 +13,7 @@ python-jose[cryptography]
 psycopg2-binary
 alembic
 requests
- 
+openpyxl
+packaging==26.2
+setuptools==82.0.1
+wheel==0.47.0

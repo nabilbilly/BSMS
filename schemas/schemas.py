@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 
 
 # Auth Schemas
@@ -133,11 +133,18 @@ class SMSLog(BaseModel):
     message_type: str
     message_content: str
     status: str
-    is_bulk: bool = False
+    is_bulk: Optional[bool] = False
     delivery_report: Optional[str] = None
     scheduled_for: datetime
     sent_at: Optional[datetime] = None
     created_at: datetime
+
+    @field_validator("is_bulk", mode="before")
+    @classmethod
+    def default_is_bulk(cls, v):
+        if v is None:
+            return False
+        return v
 
     class Config:
         from_attributes = True
@@ -200,7 +207,6 @@ class BulkReschedule(BaseModel):
 class AdminSMSLog(SMSLog):
     company_name: str
     branch_name: str
-    is_bulk: bool = False
 
 class AdminEmailLog(EmailLog):
     company_name: str
